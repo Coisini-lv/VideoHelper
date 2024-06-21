@@ -4,6 +4,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
+
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson2.JSONObject;
 import com.lsh.videohelper.entity.dto.*;
@@ -70,17 +71,27 @@ public class VideoUrlUtils {
             File audioFile = null;
 
             if (StrUtil.isAllNotEmpty(videoUrl, audioUrl)) {
-                HttpResponse response = HttpRequest.get(videoUrl)
-                        .header("Referer", bilibiliUrl).execute();
-//                        .header("User-Agent","").
-                InputStream inputStream = response.bodyStream();
-                videoFile = FileUtil.writeFromStream(inputStream, new File("/Users/lvshuaihang/IdeaProjects/VideoHelper/download/video.m4s"));
-                audioFile = HttpUtil.downloadFileFromUrl(audioUrl, new File("/Users/lvshuaihang/IdeaProjects/VideoHelper/download/audio.m4s"));
+                HttpResponse responseVideo = HttpRequest.get(videoUrl)
+                        .header("Referer", bilibiliUrl)
+                        .header("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+                        .execute();
+                InputStream inputStreamVideo = responseVideo.bodyStream();
+
+                HttpResponse responseAudio = HttpRequest.get(audioUrl)
+                        .header("Referer", bilibiliUrl)
+                        .header("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+                        .execute();
+                InputStream inputStreamAudio = responseAudio.bodyStream();
+
+                videoFile = FileUtil.writeFromStream(inputStreamVideo, new File("/Users/lvshuaihang/IdeaProjects/VideoHelper/download/video.m4s"));
+//                audioFile = HttpUtil.downloadFileFromUrl(audioUrl, new File("/Users/lvshuaihang/IdeaProjects/VideoHelper/download/audio.m4s"));
+                audioFile = FileUtil.writeFromStream(inputStreamAudio, new File("/Users/lvshuaihang/IdeaProjects/VideoHelper/download/audio.m4s"));
+
                 try {
                     ProcessBuilder pb = new ProcessBuilder("/opt/homebrew/bin/ffmpeg",
-                            "-i", "/User/eric/code/me/VideoHelper/download/video.m4s",
-                            "-i", "/User/eric/code/me/VideoHelper/download/audio.m4s",
-                            "-codec", "copy", "/User/eric/code/me/VideoHelper/download/video.mp4");
+                            "-i", "/Users/lvshuaihang/IdeaProjects/VideoHelper/download/video.m4s",
+                            "-i", "/Users/lvshuaihang/IdeaProjects/VideoHelper/download/audio.m4s",
+                            "-codec", "copy", "/Users/lvshuaihang/IdeaProjects/VideoHelper/download/video.mp4");
                     Process p = pb.start();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
                     String line;
@@ -101,7 +112,7 @@ public class VideoUrlUtils {
     }
 
     public static void main(String[] args) {
-        getBilibiliVideoDownloadUrl("https://www.bilibili.com/video/BV1Qt421K79o/?spm_id_from=333.999.0.0&vd_source=fc7901758a99adf5bfedfb5369a9d406");
+        getBilibiliVideoDownloadUrl("https://www.bilibili.com/video/BV1Qt421K79o/?vd_source=fc7901758a99adf5bfedfb5369a9d406");
 
     }
 }
